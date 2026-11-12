@@ -1,342 +1,625 @@
 <!DOCTYPE html>
-<html lang="my" class="h-full bg-slate-900">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1e293b">
-    <title>YADANAR Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <title>YADANAR - Food Ordering</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { font-family: 'Padauk', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; }
+        html, body { 
+            font-family: 'Pyidaungsu', 'Myanmar Text', sans-serif; 
+            background-color: #f4f6f8; 
+            margin: 0; 
+            padding: 0; 
+            width: 100vw;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+        .header { 
+            background: linear-gradient(135deg, #e67e22, #d35400); 
+            color: white; 
+            padding: 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            width: 100%;
+        }
+        .header h2 { margin: 0; font-size: 20px; }
+        
+        .header-btns { display: flex; gap: 8px; align-items: center; }
+        
+        .top-action-btn { 
+            background: #f1c40f; 
+            color: #222; 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            font-size: 14px; 
+            cursor: pointer; 
+            position: relative; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .badge { 
+            background: #e74c3c; 
+            color: white; 
+            border-radius: 50%; 
+            padding: 2px 6px; 
+            font-size: 12px; 
+            position: absolute; 
+            top: -5px; 
+            right: -5px; 
+        }
+        .container { 
+            padding: 15px; 
+            width: 100%; 
+            max-width: 100%; 
+            margin: auto; 
+            min-height: calc(100vh - 70px);
+            padding-bottom: 120px;
+        }
+        
+        #loginScreen {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        #mainScreen { display: none; width: 100%; }
+
+        .user-info-bar {
+            background: #e8f8f5;
+            border: 1px solid #27ae60;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            color: #2c3e50;
+            width: 100%;
+        }
+
+        .status-banner {
+            background: #e8f8f5;
+            border: 2px solid #27ae60;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            width: 100%;
+        }
+        .status-banner.active { display: block; }
+        .status-title { font-weight: bold; color: #27ae60; font-size: 18px; margin-bottom: 5px; }
+        
+        .section-title { font-size: 18px; margin-bottom: 15px; color: #333; line-height: 1.5; }
+        
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; }
+        @media (max-width: 360px) {
+            .menu-grid { grid-template-columns: 1fr; }
+        }
+        .menu-card { 
+            background: white; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            cursor: pointer; 
+            width: 100%;
+        }
+        .menu-img { width: 100%; height: 150px; object-fit: cover; }
+        .menu-info { padding: 12px; }
+        .menu-title { font-weight: bold; font-size: 17px; margin-bottom: 6px; color: #222; line-height: 1.4; }
+        .menu-price { color: #d35400; font-weight: bold; font-size: 18px; }
+        .order-btn { 
+            background: #e67e22; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            width: 100%; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 16px; 
+        }
+
+        /* Modal (ခြင်းတောင်းနှင့် မှတ်တမ်းအတွက်) */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background: rgba(0,0,0,0.6); 
+            justify-content: center; 
+            align-items: flex-end; 
+            z-index: 100; 
+        }
+        .modal-content { 
+            background: white; 
+            width: 100%; 
+            max-width: 100%; 
+            height: 90vh; 
+            border-top-left-radius: 20px; 
+            border-top-right-radius: 20px; 
+            padding: 20px; 
+            overflow-y: auto; 
+            box-sizing: border-box;
+            padding-bottom: 120px; 
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 { margin: 0; font-size: 20px; }
+        .close-top-btn {
+            background: #eee;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .cart-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #eee; 
+            padding: 14px 0; 
+            font-size: 16px;
+        }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn {
+            width: 38px;
+            height: 38px;
+            font-size: 20px;
+            font-weight: bold;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .total-box {
+            background: #fff3e0;
+            padding: 14px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 19px;
+            font-weight: bold;
+            color: #d35400;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { 
+            display: block; 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            color: #222;
+        }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 14px; 
+            font-size: 17px; 
+            border: 2px solid #ccc; 
+            border-radius: 10px; 
+            background-color: #fff;
+        }
+        .checkout-btn { 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            padding: 16px; 
+            width: 100%; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin-top: 10px; 
+        }
+        .edit-info-btn {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
-<body class="h-full text-slate-100 flex flex-col">
+<body>
 
-    <!-- Header -->
-    <header class="bg-slate-800 border-b border-slate-700 px-5 py-4 flex justify-between items-center sticky top-0 z-30 shadow-md">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-                <i class="fa-solid fa-store text-xl text-amber-500"></i>
-            </div>
-            <div>
-                <h1 class="text-lg font-bold leading-tight">YADANAR Admin</h1>
-                <p class="text-[11px] text-slate-400">ရောင်းချသူ စာရင်းထိန်း App</p>
-            </div>
+    <div class="header">
+        <h2>YADANAR Fastfood</h2>
+        <div id="headerActionBtns" class="header-btns" style="display:none;">
+            <button class="top-action-btn" onclick="toggleHistoryModal()">📋 မှတ်တမ်း/အကြွေး</button>
+            <button class="top-action-btn" onclick="toggleCart()">🛒 ခြင်းတောင်း <span id="cartCount" class="badge">0</span></button>
         </div>
-        <button onclick="refreshAll()" id="refreshBtn" class="bg-slate-700 hover:bg-slate-600 active:scale-95 transition text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 font-bold">
-            <i class="fa-solid fa-rotate"></i> ပြန်စစ်မည်
-        </button>
-    </header>
+    </div>
 
-    <main class="max-w-7xl mx-auto px-4 py-5 flex-grow w-full space-y-5">
+    <div class="container">
         
-        <!-- Navigation Tabs -->
-        <div class="flex border-b border-slate-700 space-x-6 overflow-x-auto">
-            <button onclick="switchTab('orders')" id="tab-orders" class="pb-2.5 border-b-2 border-amber-500 font-bold text-amber-500 text-sm whitespace-nowrap">အော်ဒါစာရင်းများ</button>
-            <button onclick="switchTab('debts')" id="tab-debts" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">အကြွေးစာရင်း</button>
-            <button onclick="switchTab('menuManager')" id="tab-menuManager" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">မီနူး စီမံရန်</button>
+        <!-- အချက်အလက်ဖြည့်ရန် Login Screen -->
+        <div id="loginScreen">
+            <h3 style="margin-top:0; color:#d35400;">👤 ကျေးဇူးပြု၍ သင့်အချက်အလက်များ အရင်ဖြည့်ပါ။</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">ဤအချက်အလက်များကို တစ်ကြိမ်သာ ဖြည့်သွင်းရမည်ဖြစ်ပြီး နောက်တစ်ကြိမ်တွင် အလိုအလျောက် မှတ်မိနေမည်ဖြစ်ပါသည်။</p>
+            
+            <div class="form-group">
+                <label>၁။ ကဒ်နံပါတ် (30160 - 30500) *</label>
+                <input type="number" inputmode="numeric" id="loginCustCode" placeholder="ဥပမာ - 30276">
+            </div>
+            <div class="form-group">
+                <label>၂။ အဆောင် ရွေးချယ်ပါ *</label>
+                <select id="loginBuilding">
+                    <option value="A">A အဆောင်</option>
+                    <option value="B">B အဆောင်</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>၃။ အခန်းနံပါတ် ရိုက်ထည့်ပါ *</label>
+                <input type="text" id="loginRoomNo" placeholder="ဥပမာ - 1/1">
+            </div>
+            
+            <button class="checkout-btn" onclick="saveUserInfoAndProceed()">➡️ ဆက်လက်လုပ်ဆောင်မည် (မီနူးကြည့်ရန်)</button>
         </div>
 
-        <!-- Section 1: Orders -->
-        <section id="section-orders" class="space-y-3">
-            <h2 class="text-base font-bold text-amber-400">ဝင်ရောက်ထားသော အော်ဒါများ</h2>
-            <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto shadow">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-900/80 text-slate-400 uppercase font-bold">
-                        <tr>
-                            <th class="p-3">နေ့စွဲ</th>
-                            <th class="p-3">အော်ဒါ ID</th>
-                            <th class="p-3">ဝယ်သူ ကုဒ်/အမည်</th>
-                            <th class="p-3">အခန်း</th>
-                            <th class="p-3">မှာယူသော ဟင်းပွဲများ</th>
-                            <th class="p-3">စုစုပေါင်း (THB)</th>
-                            <th class="p-3">ငွေချေစနစ်</th>
-                            <th class="p-3">ပို့ဆောင်မှု အခြေအနေ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTable" class="divide-y divide-slate-700">
-                        <tr><td colspan="8" class="p-6 text-center text-slate-400">စာရင်းများ ဆွဲယူနေပါသည်...</td></tr>
-                    </tbody>
-                </table>
+        <!-- မီနူးနှင့် အော်ဒါစနစ် Main Screen -->
+        <div id="mainScreen">
+            <div class="user-info-bar">
+                <div>📌 အချက်အလက်: ကဒ် [<b id="dispCustCode"></b>] | <b id="dispBuilding"></b>အဆောင်, အခန်း (<b id="dispRoomNo"></b>)</div>
+                <button class="edit-info-btn" onclick="editUserInfo()">ပြင်ရန်</button>
             </div>
-        </section>
 
-        <!-- Section 2: Debt Summary -->
-        <section id="section-debts" class="space-y-3 hidden">
-            <h2 class="text-base font-bold text-red-400">ဝယ်သူတစ်ဦးချင်းစီ၏ အကြွေးစုစုပေါင်း စာရင်း</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="debtCardsGrid"></div>
-        </section>
+            <div id="statusBanner" class="status-banner">
+                <div id="statusText" class="status-title">⏳ အော်ဒါ ပို့ဆောင်နေပါသည်...</div>
+                <div id="statusDetail" style="font-size: 15px; color: #444;"></div>
+            </div>
 
-        <!-- Section 3: Menu Manager -->
-        <section id="section-menuManager" class="space-y-3 hidden">
-            <div class="flex flex-wrap justify-between items-center gap-2">
-                <h2 class="text-base font-bold text-amber-400">မီနူးများ အဖွင့်/အပိတ် နှင့် ပုံတင်ရန်</h2>
-                <div class="flex gap-2">
-                    <button onclick="addNewMenuRow()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5">
-                        <i class="fa-solid fa-plus"></i> မီနူးအသစ်
-                    </button>
-                    <button id="saveMenuBtn" onclick="saveMenuToSheet()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> သိမ်းဆည်းမည်
-                    </button>
+            <div class="section-title"><b>ဟင်းပွဲ မီနူးများ</b><br><small style="color:#666;">(ပုံ သို့မဟုတ် ယူမည်ကို နှိပ်၍ ခြင်းထဲထည့်ပါ)</small></div>
+            <div id="menuGrid" class="menu-grid">မီနူးများ ဆွဲယူနေပါသည်...</div>
+        </div>
+
+    </div>
+
+    <!-- ခြင်းတောင်း Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🛒 မှာယူမည့် စာရင်း</h3>
+                <button class="close-top-btn" onclick="toggleCart()">✕ ပိတ်မည်</button>
+            </div>
+            
+            <div id="cartItemsList"></div>
+            
+            <div class="total-box">
+                <span>ကျသင့်ငွေ စုစုပေါင်း:</span>
+                <span><span id="totalPrice">0</span> THB</span>
+            </div>
+            
+            <button class="checkout-btn" onclick="submitOrder()">✅ အော်ဒါ ပေးပို့မည်</button>
+        </div>
+    </div>
+
+    <!-- နေ့စဉ်မှတ်တမ်းနှင့် လစဉ်ကြွေး သီးသန့် Modal (တစ်မျက်နှာချင်းစီကြည့်ရန်) -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 အကောင့်အကျဉ်းချုပ်နှင့် မှတ်တမ်း</h3>
+                <button class="close-top-btn" onclick="toggleHistoryModal()">✕ ပိတ်မည်</button>
+            </div>
+            
+            <!-- လစဉ်ကြွေးနှင့် အချက်အလက်ပြ Card -->
+            <div style="background: #fff3e0; border: 1px solid #e67e22; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="font-weight: bold; color: #d35400; margin-bottom: 8px; font-size: 16px;">💳 အကောင့်အကျဉ်းချုပ်</div>
+                <div style="display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 4px;">
+                    <span>ကဒ်နံပါတ်: <b id="summaryCardNo">-</b></span>
+                    <span>အခန်း: <b id="summaryRoom">-</b></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 16px; color: #c0392b; font-weight: bold; margin-top: 8px; border-top: 1px dashed #e67e22; padding-top: 8px;">
+                    <span>လစဉ်ကြွေး စုစုပေါင်း:</span>
+                    <span><span id="summaryDebt">0</span> THB</span>
                 </div>
             </div>
-            <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto p-3 shadow">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-900/80 text-slate-400 uppercase font-bold">
-                        <tr>
-                            <th class="p-3">အခြေအနေ</th>
-                            <th class="p-3">ကုဒ်</th>
-                            <th class="p-3">ဟင်းပွဲအမည်</th>
-                            <th class="p-3">ဈေးနှုန်း (THB)</th>
-                            <th class="p-3">ပုံရွေးချယ်ရန်</th>
-                            <th class="p-3">Tag</th>
-                        </tr>
-                    </thead>
-                    <tbody id="menuManageTable" class="divide-y divide-slate-700"></tbody>
-                </table>
-            </div>
-        </section>
 
-    </main>
+            <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px; color: #333;">📅 နေ့စဉ် မှာယူမှု မှတ်တမ်းများ</div>
+            <div id="orderHistoryList">
+                <p style="color: #888; font-size: 14px;">မှာယူထားသော မှတ်တမ်း မရှိသေးပါ။</p>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ⚠️ သင်၏ Google Apps Script Web App URL အပြည့်အစုံ (/exec ဖြင့်ဆုံးသောလင့်ခ်) ကို ဤနေရာတွင် ထည့်ပါ
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzbsLZ479wFAYSS3bu49pQQuumshkhNZ1QuGI-kmqilLIv0sze3h99bkWy64186kGu8/exec";
+        let menus = [];
+        let cart = {};
+        let currentOrderId = null;
+        let statusCheckInterval = null;
 
-        document.addEventListener("DOMContentLoaded", () => {
-            refreshAll();
+        document.addEventListener("DOMContentLoaded", function() {
+            checkExistingUser();
         });
 
-        async function callBackend(payload) {
-            const response = await fetch(GAS_WEB_APP_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            });
-            return await response.json();
-        }
+        function checkExistingUser() {
+            let savedCode = localStorage.getItem("yadanar_custCode");
+            let savedBuilding = localStorage.getItem("yadanar_building");
+            let savedRoom = localStorage.getItem("yadanar_roomNo");
 
-        async function refreshAll() {
-            const btn = document.getElementById("refreshBtn");
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> စစ်ဆေးနေသည်...';
-            btn.disabled = true;
+            if (savedCode && savedRoom) {
+                document.getElementById("loginScreen").style.display = "none";
+                document.getElementById("mainScreen").style.display = "block";
+                document.getElementById("headerActionBtns").style.display = "flex";
 
-            try {
-                const res = await callBackend({ action: "getAdminData" });
-                if (res.status === "success") {
-                    renderOrders(res.orders);
-                    renderDebts(res.orders);
-                    renderMenuManager(res.menus);
-                } else {
-                    alert("ဒေတာဆွဲယူရာတွင် အမှားရှိပါသည်: " + res.message);
+                document.getElementById("dispCustCode").innerText = savedCode;
+                document.getElementById("dispBuilding").innerText = savedBuilding;
+                document.getElementById("dispRoomNo").innerText = savedRoom;
+
+                document.getElementById("summaryCardNo").innerText = savedCode;
+                document.getElementById("summaryRoom").innerText = savedBuilding + " " + savedRoom;
+
+                loadMenus();
+
+                let savedOrderId = localStorage.getItem("yadanar_activeOrderId");
+                let savedSummary = localStorage.getItem("yadanar_activeSummary");
+                if (savedOrderId) {
+                    showActiveOrder(savedSummary, savedOrderId, true);
                 }
-            } catch (err) {
-                console.error(err);
-                alert("ချိတ်ဆက်မှု မအောင်မြင်ပါ။ Web App URL နှင့် အင်တာနက်လိုင်းကို စစ်ဆေးပါ။");
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-rotate"></i> ပြန်စစ်မည်';
-                btn.disabled = false;
+
+                loadOrderHistory();
+            } else {
+                document.getElementById("loginScreen").style.display = "block";
+                document.getElementById("mainScreen").style.display = "none";
+                document.getElementById("headerActionBtns").style.display = "none";
             }
         }
 
-        function switchTab(tab) {
-            ['orders', 'debts', 'menuManager'].forEach(t => {
-                document.getElementById(`section-${t}`).classList.toggle("hidden", t !== tab);
-                document.getElementById(`tab-${t}`).className = t === tab 
-                    ? "pb-2.5 border-b-2 border-amber-500 font-bold text-amber-500 text-sm whitespace-nowrap" 
-                    : "pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap";
-            });
-        }
+        function saveUserInfoAndProceed() {
+            let custCode = document.getElementById("loginCustCode").value.trim();
+            let building = document.getElementById("loginBuilding").value;
+            let roomNo = document.getElementById("loginRoomNo").value.trim();
 
-        function renderOrders(orders) {
-            const tbody = document.getElementById("ordersTable");
-            if (!orders || orders.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">အော်ဒါ မရှိသေးပါ။</td></tr>`;
+            if (!custCode || Number(custCode) < 30160 || Number(custCode) > 30500) {
+                alert("❌ ကျေးဇူးပြု၍ မှန်ကန်သော ကဒ်နံပါတ် (30160 မှ 30500 ကြား) ထည့်ပါ။");
+                document.getElementById("loginCustCode").focus();
                 return;
             }
-            tbody.innerHTML = orders.map(o => {
-                const isDelivered = o.deliveryStatus === "အသင့်စားသုံးနိုင်ပါပြီ";
-                return `
-                <tr class="hover:bg-slate-700/50">
-                    <td class="p-3 whitespace-nowrap">${o.date}</td>
-                    <td class="p-3 font-mono whitespace-nowrap">${o.orderId}</td>
-                    <td class="p-3 font-bold text-amber-300 whitespace-nowrap">${o.customer}</td>
-                    <td class="p-3 whitespace-nowrap">${o.room}</td>
-                    <td class="p-3 min-w-[150px]">${o.items}</td>
-                    <td class="p-3 font-bold text-amber-400 whitespace-nowrap">${o.total} THB</td>
-                    <td class="p-3 whitespace-nowrap">
-                        <span class="px-2 py-1 rounded text-[10px] font-bold ${o.paymentType === 'အကြွေး' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}">
-                            ${o.paymentType}
-                        </span>
-                    </td>
-                    <td class="p-3 whitespace-nowrap">
-                        ${isDelivered 
-                            ? `<span class="text-green-400 font-bold"><i class="fa-solid fa-circle-check"></i> ပို့ဆောင်ပြီး</span>` 
-                            : `<button onclick="confirmDelivery(${o.rowIndex}, this)" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[11px] font-bold">ပို့ဆောင်ပြီး အတည်ပြုမည်</button>`
-                        }
-                    </td>
-                </tr>
-            `}).join('');
+            if (!roomNo) {
+                alert("❌ ကျေးဇူးပြု၍ အခန်းနံပါတ် ဖြည့်ပါ။");
+                document.getElementById("loginRoomNo").focus();
+                return;
+            }
+
+            localStorage.setItem("yadanar_custCode", custCode);
+            localStorage.setItem("yadanar_building", building);
+            localStorage.setItem("yadanar_roomNo", roomNo);
+
+            checkExistingUser();
         }
 
-        async function confirmDelivery(rowIndex, btn) {
+        function editUserInfo() {
+            localStorage.removeItem("yadanar_custCode");
+            localStorage.removeItem("yadanar_building");
+            localStorage.removeItem("yadanar_roomNo");
+            localStorage.removeItem("yadanar_activeOrderId");
+            localStorage.removeItem("yadanar_activeSummary");
+            location.reload();
+        }
+
+        function loadMenus() {
+            google.script.run
+                .withSuccessHandler(function(data) {
+                    menus = data;
+                    renderMenu();
+                })
+                .getMenuList();
+        }
+
+        function renderMenu() {
+            let grid = document.getElementById("menuGrid");
+            grid.innerHTML = "";
+            if (menus.length === 0) {
+                grid.innerHTML = "<p>မီနူးများ မရှိသေးပါ။</p>";
+                return;
+            }
+            menus.forEach(m => {
+                grid.innerHTML += `
+                    <div class="menu-card" onclick="addToCart('${m.code}')">
+                        <img src="${m.img}" class="menu-img">
+                        <div class="menu-info">
+                            <div class="menu-title">[${m.code}] ${m.name}</div>
+                            <div class="menu-price">${m.price} THB</div>
+                        </div>
+                        <button class="order-btn" onclick="event.stopPropagation(); addToCart('${m.code}')">+ ယူမည်</button>
+                    </div>
+                `;
+            });
+        }
+
+        function addToCart(code) {
+            let item = menus.find(m => m.code === code);
+            if (!item) return;
+            if (!cart[code]) {
+                cart[code] = { ...item, qty: 1 };
+            } else {
+                cart[code].qty++;
+            }
+            updateCartUI();
+        }
+
+        function changeQty(code, delta) {
+            if (cart[code]) {
+                cart[code].qty += delta;
+                if (cart[code].qty <= 0) delete cart[code];
+                updateCartUI();
+            }
+        }
+
+        function updateCartUI() {
+            let count = 0;
+            let total = 0;
+            let list = document.getElementById("cartItemsList");
+            list.innerHTML = "";
+
+            if (Object.keys(cart).length === 0) {
+                list.innerHTML = "<p style='text-align:center; color:#888; padding:20px 0;'>ခြင်းတောင်းထဲတွင် ဟင်းပွဲ မရှိသေးပါ။</p>";
+            }
+
+            for (let code in cart) {
+                let item = cart[code];
+                count += item.qty;
+                total += item.price * item.qty;
+                list.innerHTML += `
+                    <div class="cart-item">
+                        <div>
+                            <div style="font-weight:bold; font-size:17px;">${item.name}</div>
+                            <div style="color:#666; font-size:15px; margin-top:4px;">${item.price} THB × ${item.qty} = <b>${item.price * item.qty} THB</b></div>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="changeQty('${code}', -1)">-</button>
+                            <span style="font-weight:bold; font-size:18px; min-width:24px; text-align:center;">${item.qty}</span>
+                            <button class="qty-btn" onclick="changeQty('${code}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById("cartCount").innerText = count;
+            document.getElementById("totalPrice").innerText = total;
+        }
+
+        function toggleCart() {
+            let modal = document.getElementById("cartModal");
+            modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+        }
+
+        function toggleHistoryModal() {
+            let modal = document.getElementById("historyModal");
+            modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+        }
+
+        function submitOrder() {
+            let custCode = localStorage.getItem("yadanar_custCode");
+            let building = localStorage.getItem("yadanar_building");
+            let roomNo = localStorage.getItem("yadanar_roomNo");
+
+            if (Object.keys(cart).length === 0) {
+                alert("❌ ခြင်းတောင်းထဲတွင် ဟင်းပွဲ မရှိသေးပါ။");
+                return;
+            }
+
+            let itemsArr = [];
+            let itemsSummaryStr = [];
+            for (let code in cart) {
+                itemsArr.push(cart[code]);
+                itemsSummaryStr.push(cart[code].name + " (" + cart[code].qty + "ပွဲ)");
+            }
+
+            let payload = {
+                action: "submitOrder",
+                custCode: custCode,
+                building: building,
+                roomNo: roomNo,
+                items: itemsArr
+            };
+
+            let btn = document.querySelector(".checkout-btn");
             btn.disabled = true;
-            btn.innerText = "လုပ်ဆောင်နေသည်...";
-            try {
-                const res = await callBackend({ action: "confirmDelivery", rowIndex: rowIndex });
-                if (res.status === "success") {
-                    refreshAll();
-                } else {
-                    alert("အမှားရှိပါသည်: " + res.message);
+            btn.innerText = "⏳ အော်ဒါပေးပို့နေပါသည်...";
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    alert("✅ အော်ဒါတင်ခြင်း အောင်မြင်ပါသည်!");
+                    let summaryText = itemsSummaryStr.join(", ");
+                    
+                    localStorage.setItem("yadanar_activeOrderId", res.orderId);
+                    localStorage.setItem("yadanar_activeSummary", summaryText);
+
+                    showActiveOrder(summaryText, res.orderId, false);
+                    saveToOrderHistory(res.orderId, summaryText);
+
+                    cart = {};
+                    updateCartUI();
+                    toggleCart();
                     btn.disabled = false;
-                }
-            } catch (err) {
-                alert("ချိတ်ဆက်မှု အမှားရှိပါသည်");
-                btn.disabled = false;
-            }
+                    btn.innerText = "✅ အော်ဒါ ပေးပို့မည်";
+                })
+                .withFailureHandler(function(err) {
+                    alert("❌ အမှားအယွင်း ရှိပါသည်: " + err.message);
+                    btn.disabled = false;
+                    btn.innerText = "✅ အော်ဒါ ပေးပို့မည်";
+                })
+                .handleWebOrder(payload);
         }
 
-        function renderDebts(orders) {
-            const debtMap = {};
-            if (orders) {
-                orders.forEach(o => {
-                    if (o.paymentType === 'အကြွေး') {
-                        if (!debtMap[o.customer]) debtMap[o.customer] = { room: o.room, totalDebt: 0, count: 0 };
-                        debtMap[o.customer].totalDebt += Number(o.total) || 0;
-                        debtMap[o.customer].count += 1;
-                    }
-                });
-            }
-            const grid = document.getElementById("debtCardsGrid");
-            const keys = Object.keys(debtMap);
-            if (keys.length === 0) {
-                grid.innerHTML = `<p class="text-xs text-slate-500">အကြွေးကျန်ရှိသော ဝယ်သူ မရှိသေးပါ</p>`;
+        function showActiveOrder(itemsSummary, orderId, isRestored) {
+            let banner = document.getElementById("statusBanner");
+            let title = document.getElementById("statusText");
+            let detail = document.getElementById("statusDetail");
+            
+            banner.classList.add("active");
+            banner.style.borderColor = "#e67e22";
+            title.style.color = "#e67e22";
+            title.innerHTML = "🛵 အော်ဒါ ပို့ဆောင်နေပါသည်... (" + orderId + ")";
+            detail.innerHTML = "မှာယူထားသည်များ: <b>" + itemsSummary + "</b><br><span style='color: #666;'>ရောင်းသူမှ ပို့ဆောင်ပြီးပါက ဤနေရာတွင် 'အသင့်စားသုံးနိုင်ပါပြီ' ဟု အလိုအလျောက် ပြောင်းလဲပါမည်။</span>";
+
+            if (statusCheckInterval) clearInterval(statusCheckInterval);
+            statusCheckInterval = setInterval(function() {
+                google.script.run
+                    .withSuccessHandler(function(status) {
+                        if (status === "အသင့်စားသုံးနိုင်ပါပြီ") {
+                            title.innerHTML = "✅ အသင့်စားသုံးနိုင်ပါပြီ (Ready to Eat)";
+                            detail.innerHTML = "မှာယူထားသော အစားအစာများ ရောက်ရှိလာပါပြီ။ သုံးဆောင်နိုင်ပါပြီရှင်။";
+                            banner.style.borderColor = "#27ae60";
+                            title.style.color = "#27ae60";
+                            clearInterval(statusCheckInterval);
+                            
+                            localStorage.removeItem("yadanar_activeOrderId");
+                            localStorage.removeItem("yadanar_activeSummary");
+                        }
+                    })
+                    .checkOrderStatus(orderId);
+            }, 5000);
+        }
+
+        function saveToOrderHistory(orderId, summary) {
+            let history = JSON.parse(localStorage.getItem("yadanar_history") || "[]");
+            history.unshift({ id: orderId, text: summary, date: new Date().toLocaleTimeString() });
+            localStorage.setItem("yadanar_history", JSON.stringify(history));
+            loadOrderHistory();
+        }
+
+        function loadOrderHistory() {
+            let history = JSON.parse(localStorage.getItem("yadanar_history") || "[]");
+            let container = document.getElementById("orderHistoryList");
+            if (history.length === 0) {
+                container.innerHTML = `<p style="color: #888; font-size: 14px;">မှာယူထားသော မှတ်တမ်း မရှိသေးပါ။</p>`;
                 return;
             }
-            grid.innerHTML = keys.map(cust => `
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center shadow-md">
-                    <div>
-                        <h3 class="font-bold text-amber-400 text-sm">${cust}</h3>
-                        <p class="text-xs text-slate-400">အခန်း: ${debtMap[cust].room}</p>
-                        <p class="text-xs text-slate-400">အကြိမ်ရေ: ${debtMap[cust].count} ကြိမ်</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs text-slate-400 block">စုစုပေါင်း အကြွေး</span>
-                        <span class="text-xl font-extrabold text-red-400">${debtMap[cust].totalDebt.toLocaleString()} THB</span>
-                    </div>
+            container.innerHTML = history.map(h => `
+                <div style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #444;">
+                    <b>[${h.id}]</b> ${h.text} <span style="font-size:12px; color:#888; float:right;">${h.date}</span>
                 </div>
             `).join('');
         }
 
-        function renderMenuManager(menus) {
-            const tbody = document.getElementById("menuManageTable");
-            tbody.innerHTML = (menus || []).map(m => `
-                <tr class="menu-row">
-                    <td class="p-2 whitespace-nowrap">
-                        <input type="checkbox" class="menu-status w-4 h-4 accent-green-600" ${m.status ? 'checked' : ''}> ဖွင့်မည်
-                    </td>
-                    <td class="p-2"><input type="text" value="${m.code}" class="menu-code bg-slate-700 px-2 py-1.5 rounded w-16 text-white text-xs"></td>
-                    <td class="p-2"><input type="text" value="${m.name}" class="menu-name bg-slate-700 px-2 py-1.5 rounded w-36 text-white text-xs"></td>
-                    <td class="p-2"><input type="number" value="${m.price}" class="menu-price bg-slate-700 px-2 py-1.5 rounded w-20 text-white text-xs"></td>
-                    <td class="p-2">
-                        <input type="file" accept="image/*" class="menu-image-file text-xs text-slate-300 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-900">
-                        <input type="hidden" class="menu-image-url" value="${m.image || ''}">
-                        ${m.image ? '<span class="text-[10px] text-green-400 block mt-1">ပုံရှိပြီးသားဖြစ်သည်</span>' : ''}
-                    </td>
-                    <td class="p-2"><input type="text" value="${m.tag || ''}" class="menu-tag bg-slate-700 px-2 py-1.5 rounded w-24 text-white text-xs"></td>
-                </tr>
-            `).join('');
-        }
-
-        function addNewMenuRow() {
-            const tbody = document.getElementById("menuManageTable");
-            const row = document.createElement("tr");
-            row.className = "menu-row";
-            row.innerHTML = `
-                <td class="p-2 whitespace-nowrap">
-                    <input type="checkbox" class="menu-status w-4 h-4 accent-green-600" checked> ဖွင့်မည်
-                </td>
-                <td class="p-2"><input type="text" placeholder="016" class="menu-code bg-slate-700 px-2 py-1.5 rounded w-16 text-white text-xs"></td>
-                <td class="p-2"><input type="text" placeholder="ဟင်းမည်" class="menu-name bg-slate-700 px-2 py-1.5 rounded w-36 text-white text-xs"></td>
-                <td class="p-2"><input type="number" placeholder="ဈေးနှုန်း" class="menu-price bg-slate-700 px-2 py-1.5 rounded w-20 text-white text-xs"></td>
-                <td class="p-2">
-                    <input type="file" accept="image/*" class="menu-image-file text-xs text-slate-300 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-900">
-                    <input type="hidden" class="menu-image-url" value="">
-                </td>
-                <td class="p-2"><input type="text" placeholder="Tag" class="menu-tag bg-slate-700 px-2 py-1.5 rounded w-24 text-white text-xs"></td>
-            `;
-            tbody.appendChild(row);
-        }
-
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement("canvas");
-                        const maxWidth = 300;
-                        const scale = maxWidth / img.width;
-                        canvas.width = maxWidth;
-                        canvas.height = img.height * scale;
-                        const ctx = canvas.getContext("2d");
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL("image/jpeg", 0.7));
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        async function saveMenuToSheet() {
-            const rows = document.querySelectorAll(".menu-row");
-            if (rows.length === 0) return alert("သိမ်းဆည်းမည့် မီနူး မရှိသေးပါ။");
-
-            const saveBtn = document.getElementById("saveMenuBtn");
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> သိမ်းဆည်းနေပါသည်...';
-
-            try {
-                const menus = [];
-                for (let i = 0; i < rows.length; i++) {
-                    const r = rows[i];
-                    const fileInput = r.querySelector(".menu-image-file");
-                    let imageStr = r.querySelector(".menu-image-url").value;
-
-                    if (fileInput.files && fileInput.files[0]) {
-                        imageStr = await compressImage(fileInput.files[0]);
-                    }
-
-                    menus.push({
-                        status: r.querySelector(".menu-status").checked,
-                        code: r.querySelector(".menu-code").value.trim(),
-                        name: r.querySelector(".menu-name").value.trim(),
-                        price: Number(r.querySelector(".menu-price").value) || 0,
-                        tag: r.querySelector(".menu-tag").value.trim(),
-                        image: imageStr
-                    });
-                }
-
-                const res = await callBackend({ action: "saveMenus", menus: menus });
-                if (res.status === "success") {
-                    alert("✅ Google Sheet သို့ ဖိုင်ပုံနှင့် မီနူးများ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။");
-                    refreshAll();
-                } else {
-                    alert("❌ အမှားအယွင်း ရှိပါသည်: " + res.message);
-                }
-            } catch (err) {
-                alert("❌ ချိတ်ဆက်မှု အမှားအယွင်း ရှိပါသည်: " + err.message);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> သိမ်းဆည်းမည်';
-            }
-        }
+        liff.init({ liffId: "2012553209-N027oZ5k" }).catch(err => console.log("LIFF Init Failed"));
     </script>
 </body>
 </html>
